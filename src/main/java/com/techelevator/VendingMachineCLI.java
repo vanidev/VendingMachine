@@ -5,12 +5,14 @@ import com.techelevator.view.Menu;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 public class VendingMachineCLI {
 
+	public static final String SELECT_ITEM = "Select item: ";
 	private static final int MAX_ITEMS_PER_SLOT = 5;
 	private static final String MAIN_MENU_OPTION_DISPLAY_ITEMS = "Display Vending Machine Items";
 	private static final String MAIN_MENU_OPTION_PURCHASE = "Purchase";
@@ -23,6 +25,11 @@ public class VendingMachineCLI {
 	private static final String PURCHASE_MENU_OPTION_SELECT_PRODUCT = "Select Product";
 	private static final String PURCHASE_MENU_OPTION_FINISH_TRANSACTION = "Finish Transaction";
 	private static final Object[] PURCHASE_MENU_OPTIONS = { PURCHASE_MENU_OPTION_FEED_MONEY, PURCHASE_MENU_OPTION_SELECT_PRODUCT, PURCHASE_MENU_OPTION_FINISH_TRANSACTION };
+	private static final String CURRENT_MONEY_PROVIDED_FORMAT = "\nCurrent Money Provided: $%.2f \n";
+	public static final String ENTER_AMOUNT_IN_WHOLE_DOLLARS = "Enter amount in whole dollars: ";
+	public static final String ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION = "Item Sold out! Make a new selection";
+	public static final String NOT_ENOUGH_MONEY = " not enough money";
+	private double currentMoney = 0;
 
 	private Menu menu;
 	private Map<String, Item> inventory = new HashMap<>();
@@ -32,22 +39,59 @@ public class VendingMachineCLI {
 	}
 
 	public void run() throws Exception {
+		Scanner userInput = menu.getIn();
+		PrintWriter console = menu.getOut();
 		loadItems();
 
 		while (true) {
 			String choice = (String) menu.getChoiceFromOptions(MAIN_MENU_OPTIONS);
 
 			if (choice.equals(MAIN_MENU_OPTION_DISPLAY_ITEMS)) {
-				menu.getOut().println();
+				console.println();
 				displayItems();
 			} else if (choice.equals(MAIN_MENU_OPTION_PURCHASE)) {
 				while (true) {
-					choice = (String) menu.getChoiceFromOptions(PURCHASE_MENU_OPTIONS);
+					String additionalMenuText = String.format(CURRENT_MONEY_PROVIDED_FORMAT, currentMoney);
+					choice = (String) menu.getChoiceFromOptions(PURCHASE_MENU_OPTIONS, additionalMenuText);
 
 					if (choice.equals(PURCHASE_MENU_OPTION_FEED_MONEY)) {
-						// do feed money
+						while (true) {
+							console.print(ENTER_AMOUNT_IN_WHOLE_DOLLARS);
+							console.flush();
+							String input = userInput.nextLine();
+							try {
+								double result = Double.parseDouble(input);
+								if (result < 1 || result % 1 != 0) {
+									throw new NumberFormatException();
+								}
+								currentMoney += result;
+								break;
+							} catch (NumberFormatException e) {
+								console.println(input + " is not a valid whole dollar amount.");
+							}
+						}
 					} else if (choice.equals(PURCHASE_MENU_OPTION_SELECT_PRODUCT)) {
-						// do select product
+						displayItems();
+
+						console.print(SELECT_ITEM);
+						console.flush();
+						String input = userInput.nextLine();
+
+						if (!inventory.containsKey(input)) {
+							console.println(input + " is not valid selection");
+						} else {
+							Item item = inventory.get(input);
+							if (currentMoney < item.getPrice()) {
+								console.println(NOT_ENOUGH_MONEY);
+							} else if (item.getQuantityInStock() == 0) {
+								console.println(ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION);
+							} else {
+								currentMoney -= item.getPrice();
+								item.purchase();
+								console.println("Item name: " + item.getProductName() + " | " + "Item Price: " + item.getPrice() + " | " + "Money remaining: " + currentMoney);
+								console.println(item.getDispenseMessage());
+							}
+						}
 					} else if (choice.equals(PURCHASE_MENU_OPTION_FINISH_TRANSACTION)) {
 						// finish transaction
 						break;
@@ -60,11 +104,6 @@ public class VendingMachineCLI {
 	}
 
 	private void loadItems() throws Exception {
-//		inventory.put("A1", new ChipsItem("A1", "Potato Crisps", 3.05, MAX_ITEMS_PER_SLOT));
-//		inventory.put("B1", new CandyItem("B1", "Moonpie", 1.80, 3));
-//		inventory.put("B2", new CandyItem("B2", "Cowtales", 1.50, 0));
-//		inventory.put("C1", new DrinkItem("C1", "Cola", 1.25, 4));
-
 		try(Scanner scanner = new Scanner(new File(VENDING_MACHINE_INVENTORY_FILE_PATH))) {
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();

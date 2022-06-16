@@ -16,12 +16,7 @@ public class Menu {
 	}
 
 	public Object getChoiceFromOptions(Object[] options) {
-		Object choice = null;
-		while (choice == null) {
-			displayMenuOptions(options);
-			choice = getChoiceFromUserInput(options);
-		}
-		return choice;
+		return getChoiceFromOptions(options, null);
 	}
 
 	private Object getChoiceFromUserInput(Object[] options) {
@@ -41,11 +36,14 @@ public class Menu {
 		return choice;
 	}
 
-	private void displayMenuOptions(Object[] options) {
+	private void displayMenuOptions(Object[] options, String additionalMenuText) {
 		out.println();
 		for (int i = 0; i < options.length; i++) {
 			int optionNum = i + 1;
 			out.println(optionNum + ") " + options[i]);
+		}
+		if(additionalMenuText != null) {
+			out.print(additionalMenuText);
 		}
 		out.print(System.lineSeparator() + "Please choose an option >>> ");
 		out.flush();
@@ -54,4 +52,19 @@ public class Menu {
 	public PrintWriter getOut() {
 		return out;
 	}
+
+	public Object getChoiceFromOptions(Object[] options, String additionalMenuText) {
+		Object choice = null;
+		while (choice == null) {
+			displayMenuOptions(options, additionalMenuText);
+
+			choice = getChoiceFromUserInput(options);
+		}
+		return choice;
+	}
+
+	public Scanner getIn() {
+		return in;
+	}
+
 }
