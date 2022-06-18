@@ -94,6 +94,32 @@ public class VendingMachineCLI {
 						}
 					} else if (choice.equals(PURCHASE_MENU_OPTION_FINISH_TRANSACTION)) {
 						// finish transaction
+						Map<Integer, Integer> coinCounts = computeChange();
+						currentMoney = 0;
+						if(!coinCounts.isEmpty()) {
+							String coinText = "";
+							if(coinCounts.containsKey(25)) {
+								int coinCount = coinCounts.get(25);
+								coinText += coinCount + (coinCount == 1 ? " quarter" : " quarters");
+							}
+							if(coinCounts.containsKey(10)) {
+								int coinCount = coinCounts.get(10);
+								if(!coinText.isEmpty()) {
+								coinText += ", ";
+								}
+								coinText += coinCount + (coinCount == 1 ? " dime" : " dimes");
+							}
+							if(coinCounts.containsKey(5)) {
+								int coinCount = coinCounts.get(5);
+								if(!coinText.isEmpty()) {
+									coinText += ", ";
+								}
+								coinText += coinCount + (coinCount == 1 ? " nickle" : " nickles");
+							}
+							console.println();
+							console.print("Dispensing change: " + coinText);
+							console.println();
+						}
 						break;
 					}
 				}
@@ -149,6 +175,35 @@ public class VendingMachineCLI {
 							: ITEM_LIST_ENTRY_SOLD_OUT_QUANTITY_TEXT
 			);
 		}
+	}
+
+	public Map<Integer, Integer> computeChange() {
+		Map<Integer, Integer> coinCounts = new HashMap<>();
+
+
+		//quarters
+		double remainingMoney = currentMoney;
+		int coinCount = (int)(remainingMoney / .25);
+		remainingMoney -= coinCount * .25;
+
+		if (coinCount > 0) {
+			coinCounts.put(25, coinCount);
+		}
+
+		//dimes
+		coinCount = (int)(remainingMoney / .10);
+		remainingMoney -= coinCount * .10;
+		if (coinCount > 0) {
+			coinCounts.put(10, coinCount);
+		}
+
+		//nickles
+		coinCount = (int)(remainingMoney / .05);
+		if (coinCount > 0) {
+			coinCounts.put(5, coinCount);
+		}
+
+		return coinCounts;
 	}
 
 	public static void main(String[] args) {
