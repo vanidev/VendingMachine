@@ -1,34 +1,37 @@
 package com.techelevator;
 
 import com.techelevator.items.*;
+import com.techelevator.util.ActionLogger;
 import com.techelevator.view.Menu;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class VendingMachineCLI {
 
-	public static final String SELECT_ITEM = "Select item: ";
+	private static final String SELECT_ITEM = "Select item: ";
 	private static final int MAX_ITEMS_PER_SLOT = 5;
 	private static final String MAIN_MENU_OPTION_DISPLAY_ITEMS = "Display Vending Machine Items";
 	private static final String MAIN_MENU_OPTION_PURCHASE = "Purchase";
 	private static final String MAIN_MENU_OPTION_EXIT = "Exit";
 	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_DISPLAY_ITEMS, MAIN_MENU_OPTION_PURCHASE, MAIN_MENU_OPTION_EXIT };
-	private static final String ITEM_LIST_ENTRY_FORMAT = "%s|%s|%s|%.2f|%s\n";
+	private static final String ITEM_LIST_ENTRY_FORMAT = "%s: %s %s $%.2f (%s Available)";
 	private static final String ITEM_LIST_ENTRY_SOLD_OUT_QUANTITY_TEXT = "SOLD OUT";
 	private static final String VENDING_MACHINE_INVENTORY_FILE_PATH = "vendingmachine.csv";
 	private static final String PURCHASE_MENU_OPTION_FEED_MONEY = "Feed Money";
 	private static final String PURCHASE_MENU_OPTION_SELECT_PRODUCT = "Select Product";
 	private static final String PURCHASE_MENU_OPTION_FINISH_TRANSACTION = "Finish Transaction";
 	private static final Object[] PURCHASE_MENU_OPTIONS = { PURCHASE_MENU_OPTION_FEED_MONEY, PURCHASE_MENU_OPTION_SELECT_PRODUCT, PURCHASE_MENU_OPTION_FINISH_TRANSACTION };
-	private static final String CURRENT_MONEY_PROVIDED_FORMAT = "\nCurrent Money Provided: $%.2f \n";
-	public static final String ENTER_AMOUNT_IN_WHOLE_DOLLARS = "Enter amount in whole dollars: ";
-	public static final String ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION = "Item Sold out! Make a new selection";
-	public static final String NOT_ENOUGH_MONEY = " not enough money";
+	private static final String CURRENT_MONEY_PROVIDED_FORMAT = System.lineSeparator() + "Current Money Provided: $%.2f" + System.lineSeparator();
+	private static final String ENTER_AMOUNT_IN_WHOLE_DOLLARS = "Enter amount in whole dollars: ";
+	private static final String ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION = "Item Sold out! Make a new selection";
+	private static final String ERROR_MESSAGE_FORMAT_NOT_ENOUGH_MONEY = "Not enough money.";
+	private static final String ACTION_LOG_ACTION_FEED_MONEY = "FEED MONEY";
+	private static final String ACTION_LOG_ACTION_GIVE_CHANGE = "GIVE CHANGE";
+	private static final String ACTION_LOG_DISPENSE_ITEM_FORMAT = "%s %s";
+	private static final String ERROR_MESSAGE_FORMAT_INVALID_WHOLE_DOLLAR_AMOUNT = "\"%s\" is not a valid whole dollar amount.";
+	private static final String ERROR_MESSAGE_FORMAT_INVALID_PRODUCT_SELECTION = "\"%s\" is not valid selection.";
 	private double currentMoney = 0;
 
 	private Menu menu;
@@ -65,9 +68,10 @@ public class VendingMachineCLI {
 									throw new NumberFormatException();
 								}
 								currentMoney += result;
+								ActionLogger.log(ACTION_LOG_ACTION_FEED_MONEY, result, currentMoney);
 								break;
 							} catch (NumberFormatException e) {
-								console.println(input + " is not a valid whole dollar amount.");
+								console.printf(ERROR_MESSAGE_FORMAT_INVALID_WHOLE_DOLLAR_AMOUNT + System.lineSeparator(), input);
 							}
 						}
 					} else if (choice.equals(PURCHASE_MENU_OPTION_SELECT_PRODUCT)) {
@@ -78,11 +82,11 @@ public class VendingMachineCLI {
 						String input = userInput.nextLine();
 
 						if (!inventory.containsKey(input)) {
-							console.println(input + " is not valid selection");
+							console.printf(ERROR_MESSAGE_FORMAT_INVALID_PRODUCT_SELECTION + System.lineSeparator(), input);
 						} else {
 							Item item = inventory.get(input);
 							if (currentMoney < item.getPrice()) {
-								console.println(NOT_ENOUGH_MONEY);
+								console.println(ERROR_MESSAGE_FORMAT_NOT_ENOUGH_MONEY);
 							} else if (item.getQuantityInStock() == 0) {
 								console.println(ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION);
 							} else {
@@ -90,11 +94,14 @@ public class VendingMachineCLI {
 								item.purchase();
 								console.println("Item name: " + item.getProductName() + " | " + "Item Price: " + item.getPrice() + " | " + "Money remaining: " + currentMoney);
 								console.println(item.getDispenseMessage());
+								ActionLogger.log(String.format(ACTION_LOG_DISPENSE_ITEM_FORMAT, item.getProductName(), item.getSlotLocation()),
+										item.getPrice(), currentMoney);
 							}
 						}
 					} else if (choice.equals(PURCHASE_MENU_OPTION_FINISH_TRANSACTION)) {
 						// finish transaction
 						Map<Integer, Integer> coinCounts = computeChange();
+						ActionLogger.log(ACTION_LOG_ACTION_GIVE_CHANGE, currentMoney, 0.0);
 						currentMoney = 0;
 						if(!coinCounts.isEmpty()) {
 							String coinText = "";
@@ -163,7 +170,9 @@ public class VendingMachineCLI {
 	}
 
 	private void displayItems() {
-		for (String slotLocation : inventory.keySet()) {
+		String[] sortedSlotLocations = inventory.keySet().toArray(new String[] {});
+		Arrays.sort(sortedSlotLocations);
+		for (String slotLocation : sortedSlotLocations) {
 			Item item = inventory.get(slotLocation);
 			menu.getOut().printf(ITEM_LIST_ENTRY_FORMAT,
 					item.getSlotLocation(),
@@ -174,6 +183,7 @@ public class VendingMachineCLI {
 							? Integer.toString(item.getQuantityInStock())
 							: ITEM_LIST_ENTRY_SOLD_OUT_QUANTITY_TEXT
 			);
+			menu.getOut().println();
 		}
 	}
 

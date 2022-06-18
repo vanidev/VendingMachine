@@ -78,3 +78,6 @@ cypress/screenshots
 cypress/videos
 /tests/e2e/videos/
 /tests/e2e/screenshots/
+
+# Ignore Vending Machine CLI Action Log File
+/Log.txt
