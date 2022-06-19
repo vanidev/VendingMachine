@@ -6,22 +6,19 @@ import java.io.PrintWriter;
 import java.util.*;
 
 public class VendingMachineCLI {
-	private Menu menu;
+	private final Menu menu;
 	private final PrintWriter console;
-	private final Scanner userInput;
 
 	public VendingMachineCLI(Menu menu) {
 		this.menu = menu;
 		this.console = menu.getOut();
-		this.userInput = menu.getIn();
 	}
 
 	public void run() throws Exception {
-		VendingMachine vending = new VendingMachine();
-		MainMenuProcessor mainMenuProcessor = new MainMenuProcessor(vending, menu, console, userInput);
+		VendingMachine vending = new VendingMachine(console); // "Welcome to the Machine!"
+		MainMenuProcessor mainMenuProcessor = new MainMenuProcessor(vending, menu);
 		mainMenuProcessor.run();
 	}
-
 
 	public static void main(String[] args) {
 		try {
