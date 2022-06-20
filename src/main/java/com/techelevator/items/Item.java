@@ -1,9 +1,11 @@
 package com.techelevator.items;
 
+import java.math.BigDecimal;
+
 public abstract class Item {
     private String slotLocation;
     private String productName;
-    private double price;
+    private BigDecimal price;
     private int quantityInStock;
 
     public String getSlotLocation() {
@@ -14,7 +16,7 @@ public abstract class Item {
         return productName;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
@@ -22,7 +24,7 @@ public abstract class Item {
 
     public abstract String getDispenseMessage();
 
-    protected Item(String slotLocation, String productName, double price, int quantityInStock) {
+    protected Item(String slotLocation, String productName, BigDecimal price, int quantityInStock) {
         this.slotLocation = slotLocation;
         this.productName = productName;
         this.price = price;

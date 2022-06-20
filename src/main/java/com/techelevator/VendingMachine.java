@@ -2,9 +2,13 @@ package com.techelevator;
 
 import com.techelevator.items.*;
 import com.techelevator.util.ActionLogger;
+import com.techelevator.util.ItemSoldOutVendingMachineException;
+import com.techelevator.util.NotEnoughMoneyVendingMachineException;
 
 import java.io.File;
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -13,27 +17,19 @@ public class VendingMachine {
     private static final String ACTION_LOG_ACTION_FEED_MONEY = "FEED MONEY";
     private static final String ACTION_LOG_DISPENSE_ITEM_FORMAT = "%s %s";
     private static final String ACTION_LOG_ACTION_GIVE_CHANGE = "GIVE CHANGE";
-    private static final String ERROR_MESSAGE_FORMAT_NOT_ENOUGH_MONEY = "Not enough money.";
-    private static final String ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION = "Item Sold out! Make a new selection";
-    private static final String ITEM_DESCRIPTION_FORMAT = "%s: %s %s $%.2f";
-    private static final String ITEM_DISPENSE_MESSAGE_FORMAT = "Dispensing item %s" + System.lineSeparator() + "Money remaining: $%.2f";
     public static final int MAX_ITEMS_PER_SLOT = 5;
     private static final String VENDING_MACHINE_INVENTORY_FILE_PATH = "vendingmachine.csv";
+    private static final String ERROR_MESSAGE_BAD_INVENTORY_FILE_FORMAT = "Bad inventory file format.";
 
     private final Map<String, Item> inventory = new HashMap<>();
-    private double currentMoney = 0;
-    private final PrintWriter console;
+    private BigDecimal currentMoney = BigDecimal.valueOf(0);
 
-    public PrintWriter getConsole() {
-        return console;
-    }
 
-    public double getCurrentMoney() {
+    public BigDecimal getCurrentMoney() {
         return currentMoney;
     }
 
-    public VendingMachine(PrintWriter console) throws Exception {
-        this.console = console;
+    public VendingMachine() throws Exception {
         loadItems();
     }
 
@@ -41,14 +37,14 @@ public class VendingMachine {
         return inventory;
     }
 
-    private void loadItems() throws Exception {
+    private void loadItems() throws IOException {
         try(Scanner scanner = new Scanner(new File(VENDING_MACHINE_INVENTORY_FILE_PATH))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] fields = line.split("\\|");
                 String slotLocation = fields[0];
                 String productName = fields[1];
-                double price = Double.parseDouble(fields[2]);
+                BigDecimal price = BigDecimal.valueOf(Double.parseDouble(fields[2]));
                 String itemType = fields[3];
                 Item item;
                 if (itemType.equalsIgnoreCase(CandyItem.PRODUCT_TYPE_NAME)) {
@@ -64,102 +60,70 @@ public class VendingMachine {
                     item = new GumItem(slotLocation, productName, price, MAX_ITEMS_PER_SLOT);
                 }
                 else {
-                    throw new Exception("Bad inventory file format.");
+                    throw new IOException(ERROR_MESSAGE_BAD_INVENTORY_FILE_FORMAT);
                 }
                 inventory.put(item.getSlotLocation(), item);
             }
         }
-        catch (Exception e) {
+        catch (IOException e) {
             throw e;
         }
     }
 
-    public void feedMoney(double amount) {
-        currentMoney += amount;
+    public void feedMoney(BigDecimal amount) {
+        currentMoney = currentMoney.add(amount);
         ActionLogger.log(ACTION_LOG_ACTION_FEED_MONEY, amount, currentMoney);
     }
 
-    public void purchaseItem(String slotLocation) {
+    public Item purchaseItem(String slotLocation)
+            throws NotEnoughMoneyVendingMachineException, ItemSoldOutVendingMachineException {
+
         Item item = inventory.get(slotLocation);
-        if (currentMoney < item.getPrice()) {
-            console.println(ERROR_MESSAGE_FORMAT_NOT_ENOUGH_MONEY);
+        if (currentMoney.compareTo(item.getPrice()) < 0) {
+            throw new NotEnoughMoneyVendingMachineException();
         } else if (item.getQuantityInStock() == 0) {
-            console.println(ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION);
+            throw new ItemSoldOutVendingMachineException();
         } else {
-            currentMoney -= item.getPrice();
+            currentMoney = currentMoney.subtract(item.getPrice());
             item.purchase();
-            console.printf(ITEM_DISPENSE_MESSAGE_FORMAT, getItemDescription(item), currentMoney);
-            console.println();
-            console.println(item.getDispenseMessage());
             ActionLogger.log(String.format(ACTION_LOG_DISPENSE_ITEM_FORMAT, item.getProductName(), item.getSlotLocation()),
                     item.getPrice(), currentMoney);
+            return item;
         }
     }
 
-    public void dispenseChange() {
+    public Map<Integer, Integer> dispenseChange() {
         Map<Integer, Integer> coinCounts = computeChange();
-        ActionLogger.log(ACTION_LOG_ACTION_GIVE_CHANGE, currentMoney, 0.0);
-        currentMoney = 0;
-        if(!coinCounts.isEmpty()) {
-            String coinText = "";
-            if(coinCounts.containsKey(25)) {
-                int coinCount = coinCounts.get(25);
-                coinText += coinCount + (coinCount == 1 ? " quarter" : " quarters");
-            }
-            if(coinCounts.containsKey(10)) {
-                int coinCount = coinCounts.get(10);
-                if(!coinText.isEmpty()) {
-                    coinText += ", ";
-                }
-                coinText += coinCount + (coinCount == 1 ? " dime" : " dimes");
-            }
-            if(coinCounts.containsKey(5)) {
-                int coinCount = coinCounts.get(5);
-                if(!coinText.isEmpty()) {
-                    coinText += ", ";
-                }
-                coinText += coinCount + (coinCount == 1 ? " nickle" : " nickles");
-            }
-            console.println();
-            console.print("Dispensing change: " + coinText);
-            console.println();
-        }
+        ActionLogger.log(ACTION_LOG_ACTION_GIVE_CHANGE, currentMoney, BigDecimal.valueOf(0));
+        currentMoney = BigDecimal.valueOf(0);
+        return coinCounts;
     }
 
     private Map<Integer, Integer> computeChange() {
         Map<Integer, Integer> coinCounts = new HashMap<>();
 
         //quarters
-        double remainingMoney = currentMoney;
-        int coinCount = (int)(remainingMoney / .25);
-        remainingMoney -= coinCount * .25;
+        BigDecimal remainingMoney = new BigDecimal(currentMoney.toString());
+        int coinCount = remainingMoney.divide(BigDecimal.valueOf(0.25), RoundingMode.UNNECESSARY).intValue();
+        remainingMoney = remainingMoney.subtract(BigDecimal.valueOf(coinCount * 0.25));
 
         if (coinCount > 0) {
             coinCounts.put(25, coinCount);
         }
 
         //dimes
-        coinCount = (int)(remainingMoney / .10);
-        remainingMoney -= coinCount * .10;
+        coinCount = remainingMoney.divide(BigDecimal.valueOf(0.10), RoundingMode.UNNECESSARY).intValue();
+        remainingMoney = remainingMoney.subtract(BigDecimal.valueOf(coinCount * 0.10));
         if (coinCount > 0) {
             coinCounts.put(10, coinCount);
         }
 
         //nickles
-        coinCount = (int)(remainingMoney / .05);
+        coinCount = remainingMoney.divide(BigDecimal.valueOf(0.05), RoundingMode.UNNECESSARY).intValue();
         if (coinCount > 0) {
             coinCounts.put(5, coinCount);
         }
 
         return coinCounts;
-    }
-
-    public String getItemDescription(Item item) {
-        return String.format(ITEM_DESCRIPTION_FORMAT,
-                item.getSlotLocation(),
-                item.getProductName(),
-                item.getProductTypeName(),
-                item.getPrice()
-        );
     }
 }

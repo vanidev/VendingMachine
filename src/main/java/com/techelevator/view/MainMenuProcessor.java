@@ -1,6 +1,6 @@
-package com.techelevator;
+package com.techelevator.view;
 
-import com.techelevator.view.Menu;
+import com.techelevator.VendingMachine;
 
 public class MainMenuProcessor extends MenuProcessor{
     private static final String MAIN_MENU_OPTION_DISPLAY_ITEMS = "Display Vending Machine Items";
@@ -9,7 +9,7 @@ public class MainMenuProcessor extends MenuProcessor{
     private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_DISPLAY_ITEMS, MAIN_MENU_OPTION_PURCHASE, MAIN_MENU_OPTION_EXIT };
 
 
-    protected MainMenuProcessor(VendingMachine WelcomeToTheMachine, Menu menu) {
+    public MainMenuProcessor(VendingMachine WelcomeToTheMachine, Menu menu) {
         super(WelcomeToTheMachine, menu);
     }
 
@@ -20,7 +20,7 @@ public class MainMenuProcessor extends MenuProcessor{
         while (true) {
             String choice = (String) menu.getChoiceFromOptions(MAIN_MENU_OPTIONS);
             if (choice.equals(MAIN_MENU_OPTION_DISPLAY_ITEMS)) {
-                vendingMachine.getConsole().println();
+                console.println();
                 displayItems();
             } else if (choice.equals(MAIN_MENU_OPTION_PURCHASE)) {
                 purchaseMenuProcessor.run();

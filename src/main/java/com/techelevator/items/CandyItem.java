@@ -1,11 +1,13 @@
 package com.techelevator.items;
 
+import java.math.BigDecimal;
+
 public class CandyItem extends Item {
 
     public static final String PRODUCT_TYPE_NAME = "Candy";
     public static final String DISPENSE_MESSAGE = "Munch Munch, Yum!";
 
-    public CandyItem(String slotLocation, String productName, double price, int quantityInStock) {
+    public CandyItem(String slotLocation, String productName, BigDecimal price, int quantityInStock) {
         super(slotLocation, productName, price, quantityInStock);
     }
 
