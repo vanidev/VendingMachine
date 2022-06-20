@@ -62,6 +62,7 @@ public class PurchaseMenuProcessor extends MenuProcessor {
             String input = menu.getIn().nextLine();
             try {
                 BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(input));
+                //only whole number when feeding money.
                 if (amount.compareTo(BigDecimal.valueOf(1)) < 0
                         || amount.remainder(BigDecimal.valueOf(1)).equals(BigDecimal.valueOf(0))) {
                     throw new NumberFormatException();

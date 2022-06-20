@@ -6,11 +6,10 @@ import java.io.PrintWriter;
 
 public class VendingMachineCLI {
 	private final Menu menu;
-	private final PrintWriter console;
+
 
 	public VendingMachineCLI(Menu menu) {
 		this.menu = menu;
-		this.console = menu.getOut();
 	}
 
 	public void run() throws Exception {

@@ -37,7 +37,7 @@ public class VendingMachine {
         return inventory;
     }
 
-    //purchase menu options
+    //initialize inventory
     private void loadItems() throws IOException {
         try(Scanner scanner = new Scanner(new File(VENDING_MACHINE_INVENTORY_FILE_PATH))) {
             while (scanner.hasNextLine()) {
@@ -73,7 +73,6 @@ public class VendingMachine {
         }
     }
 
-    //only whole number when feeding money.
     public void feedMoney(BigDecimal amount) {
         currentMoney = currentMoney.add(amount);
         ActionLogger.log(ACTION_LOG_ACTION_FEED_MONEY, amount, currentMoney);
@@ -109,23 +108,23 @@ public class VendingMachine {
 
         //quarters
         BigDecimal remainingMoney = new BigDecimal(currentMoney.toString());
-        int coinCount = remainingMoney.divide(BigDecimal.valueOf(0.25), RoundingMode.UNNECESSARY).intValue();
-        remainingMoney = remainingMoney.subtract(BigDecimal.valueOf(coinCount * 0.25));
+        int coinCount = remainingMoney.divide(new BigDecimal("0.25"), RoundingMode.UNNECESSARY).intValue();
+        remainingMoney = remainingMoney.subtract(BigDecimal.valueOf(coinCount).multiply(new BigDecimal( "0.25")));
 
         if (coinCount > 0) {
             coinCounts.put(25, coinCount);
         }
 
         //dimes
-        coinCount = remainingMoney.divide(BigDecimal.valueOf(0.10), RoundingMode.UNNECESSARY).intValue();
-        remainingMoney = remainingMoney.subtract(BigDecimal.valueOf(coinCount * 0.10));
+        coinCount = remainingMoney.divide(new BigDecimal("0.10"), RoundingMode.UNNECESSARY).intValue();
+        remainingMoney = remainingMoney.subtract(BigDecimal.valueOf(coinCount).multiply(new BigDecimal( "0.10")));
 
         if (coinCount > 0) {
             coinCounts.put(10, coinCount);
         }
 
         //nickles
-        coinCount = remainingMoney.divide(BigDecimal.valueOf(0.05), RoundingMode.UNNECESSARY).intValue();
+        coinCount = remainingMoney.divide( new BigDecimal("0.05"), RoundingMode.UNNECESSARY).intValue();
         if (coinCount > 0) {
             coinCounts.put(5, coinCount);
         }
