@@ -17,7 +17,7 @@ public class VendingMachine {
     private static final String ITEM_SOLD_OUT_MAKE_A_NEW_SELECTION = "Item Sold out! Make a new selection";
     private static final String ITEM_DESCRIPTION_FORMAT = "%s: %s %s $%.2f";
     private static final String ITEM_DISPENSE_MESSAGE_FORMAT = "Dispensing item %s" + System.lineSeparator() + "Money remaining: $%.2f";
-    private static final int MAX_ITEMS_PER_SLOT = 5;
+    public static final int MAX_ITEMS_PER_SLOT = 5;
     private static final String VENDING_MACHINE_INVENTORY_FILE_PATH = "vendingmachine.csv";
 
     private final Map<String, Item> inventory = new HashMap<>();
