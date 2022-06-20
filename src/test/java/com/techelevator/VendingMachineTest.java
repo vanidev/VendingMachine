@@ -90,4 +90,14 @@ public class VendingMachineTest {
 
     }
 
+    @Test
+    public void display_dispense_message_correctly() {
+
+    }
+
+    @Test
+    public void check_if_item_type_is_correct_per_item() {
+
+    }
+
 }
