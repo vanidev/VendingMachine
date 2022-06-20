@@ -2,6 +2,8 @@ package com.techelevator.items;
 
 import java.math.BigDecimal;
 
+// Class contains: Use of BigDecimal for arbitrary precision
+
 public abstract class Item {
     private String slotLocation;
     private String productName;

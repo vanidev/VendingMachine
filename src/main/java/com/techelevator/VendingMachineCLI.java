@@ -2,7 +2,6 @@ package com.techelevator;
 
 import com.techelevator.view.MainMenuProcessor;
 import com.techelevator.view.Menu;
-
 import java.io.PrintWriter;
 
 public class VendingMachineCLI {

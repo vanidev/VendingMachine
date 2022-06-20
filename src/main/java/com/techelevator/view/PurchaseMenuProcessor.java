@@ -4,12 +4,12 @@ import com.techelevator.util.ItemSoldOutVendingMachineException;
 import com.techelevator.util.NotEnoughMoneyVendingMachineException;
 import com.techelevator.VendingMachine;
 import com.techelevator.items.Item;
-
 import java.math.BigDecimal;
 import java.util.Map;
 
-public class PurchaseMenuProcessor extends MenuProcessor {
+// Class contains: Use of BigDecimal for arbitrary precision
 
+public class PurchaseMenuProcessor extends MenuProcessor {
     private static final String SELECT_ITEM = "Select item >>> ";
     private static final String ERROR_MESSAGE_FORMAT_INVALID_PRODUCT_SELECTION = "\"%s\" is not valid selection.";
     private static final String ERROR_MESSAGE_FORMAT_NOT_ENOUGH_MONEY = "Not enough money.";

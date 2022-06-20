@@ -2,8 +2,9 @@ package com.techelevator.items;
 
 import java.math.BigDecimal;
 
-public class CandyItem extends Item {
+// Class contains: Use of BigDecimal for arbitrary precision
 
+public class CandyItem extends Item {
     public static final String PRODUCT_TYPE_NAME = "Candy";
     public static final String DISPENSE_MESSAGE = "Munch Munch, Yum!";
 
@@ -20,4 +21,5 @@ public class CandyItem extends Item {
     public String getDispenseMessage() {
         return DISPENSE_MESSAGE;
     }
+
 }

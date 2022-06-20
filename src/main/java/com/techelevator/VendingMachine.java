@@ -4,7 +4,6 @@ import com.techelevator.items.*;
 import com.techelevator.util.ActionLogger;
 import com.techelevator.util.ItemSoldOutVendingMachineException;
 import com.techelevator.util.NotEnoughMoneyVendingMachineException;
-
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -13,17 +12,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+// Class contains: Use of BigDecimal for arbitrary precision
+
 public class VendingMachine {
+    //reused pattern from Menu class. No need to reinvent the wheel.
+    public static final int MAX_ITEMS_PER_SLOT = 5;
     private static final String ACTION_LOG_ACTION_FEED_MONEY = "FEED MONEY";
     private static final String ACTION_LOG_DISPENSE_ITEM_FORMAT = "%s %s";
     private static final String ACTION_LOG_ACTION_GIVE_CHANGE = "GIVE CHANGE";
-    public static final int MAX_ITEMS_PER_SLOT = 5;
     private static final String VENDING_MACHINE_INVENTORY_FILE_PATH = "vendingmachine.csv";
     private static final String ERROR_MESSAGE_BAD_INVENTORY_FILE_FORMAT = "Bad inventory file format.";
-
     private final Map<String, Item> inventory = new HashMap<>();
     private BigDecimal currentMoney = BigDecimal.valueOf(0);
-
 
     public BigDecimal getCurrentMoney() {
         return currentMoney;
@@ -37,6 +37,7 @@ public class VendingMachine {
         return inventory;
     }
 
+    //purchase menu options
     private void loadItems() throws IOException {
         try(Scanner scanner = new Scanner(new File(VENDING_MACHINE_INVENTORY_FILE_PATH))) {
             while (scanner.hasNextLine()) {
@@ -47,6 +48,8 @@ public class VendingMachine {
                 BigDecimal price = BigDecimal.valueOf(Double.parseDouble(fields[2]));
                 String itemType = fields[3];
                 Item item;
+
+                //item format setup
                 if (itemType.equalsIgnoreCase(CandyItem.PRODUCT_TYPE_NAME)) {
                     item = new CandyItem(slotLocation, productName, price, MAX_ITEMS_PER_SLOT);
                 }
@@ -70,6 +73,7 @@ public class VendingMachine {
         }
     }
 
+    //only whole number when feeding money.
     public void feedMoney(BigDecimal amount) {
         currentMoney = currentMoney.add(amount);
         ActionLogger.log(ACTION_LOG_ACTION_FEED_MONEY, amount, currentMoney);
@@ -99,6 +103,7 @@ public class VendingMachine {
         return coinCounts;
     }
 
+    // Implementation 'Algorithm' makes use of the least amount of coins.
     private Map<Integer, Integer> computeChange() {
         Map<Integer, Integer> coinCounts = new HashMap<>();
 
@@ -114,6 +119,7 @@ public class VendingMachine {
         //dimes
         coinCount = remainingMoney.divide(BigDecimal.valueOf(0.10), RoundingMode.UNNECESSARY).intValue();
         remainingMoney = remainingMoney.subtract(BigDecimal.valueOf(coinCount * 0.10));
+
         if (coinCount > 0) {
             coinCounts.put(10, coinCount);
         }

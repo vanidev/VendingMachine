@@ -10,12 +10,10 @@ import java.util.Arrays;
 public abstract class MenuProcessor {
     protected final Menu menu;
     protected final PrintWriter console;
-
+    protected final VendingMachine vendingMachine;
     private static final String ITEM_LIST_ENTRY_FORMAT = "%s (%s Available)";
     private static final String ITEM_LIST_ENTRY_SOLD_OUT_QUANTITY_TEXT = "SOLD OUT";
     private static final String ITEM_DESCRIPTION_FORMAT = "%s: %s %s $%.2f";
-    protected final VendingMachine vendingMachine;
-
 
     protected MenuProcessor(VendingMachine vendingMachine, Menu menu) {
         this.vendingMachine = vendingMachine;
